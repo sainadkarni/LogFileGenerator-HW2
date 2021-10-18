@@ -23,5 +23,14 @@ libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % scalacticVersion % Test,
   "org.scalatest" %% "scalatest-featurespec" % scalacticVersion % Test,
   "com.typesafe" % "config" % typesafeConfigVersion,
-  "com.github.mifmif" % "generex" % generexVersion
+  "com.github.mifmif" % "generex" % generexVersion,
+  "org.apache.hadoop" % "hadoop-mapreduce-client-core" % "3.3.1",
+  "org.apache.hadoop" % "hadoop-common" % "3.3.1",
+  "org.apache.hadoop" % "hadoop-client" % "3.3.1"
 )
+
+// META-INF discarding
+assemblyMergeStrategy in assembly := {
+  case PathList("META-INF", xs @ _*) => MergeStrategy.discard
+  case x => MergeStrategy.first
+}
