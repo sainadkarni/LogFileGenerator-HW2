@@ -1,9 +1,7 @@
 
 import HelperUtils.{CreateLogger, ObtainConfigReference}
-//import WordCount
-//import MaxCharacters
 import com.typesafe.config.ConfigFactory
-import org.slf4j.LoggerFactory
+//import org.slf4j.LoggerFactory
 
 class RunJobs
 object RunJobs:
@@ -13,7 +11,8 @@ object RunJobs:
     logger.info("Starting Map/Reduce jobs")
 //    WordCount.main(args)
 //    MaxCharacters.main(args)
-    SortBins.main(args)
+//    SortBins.main(args)
+    Aggregations.main(args)
     logger.info("Finished all Map/Reduce jobs")
 
   }
