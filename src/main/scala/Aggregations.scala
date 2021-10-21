@@ -36,7 +36,7 @@ object Aggregations {
       if(injectedStringPatternMatcher.find() && keywordPatternMatcher.find()) {
         val nextMinuteBin = String.format("%02d", value.toString.substring(3, 5).toInt + 1)
         val hourBin = value.toString.substring(0, 3)
-        if(nextMinuteBin == "60" && hourBin == "24") {
+        if(nextMinuteBin == "60" && hourBin == "23") {
           word.set(value.toString.substring(0, 5) + "-" + "00:00" + " " + keywordPatternMatcher.group())
         }
         else if(nextMinuteBin == "60") {

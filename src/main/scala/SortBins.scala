@@ -36,9 +36,9 @@ object SortBins {
       val injectedStringPatternMatcher = Pattern.compile(config.getString("randomLogGenerator.Pattern")).matcher(value.toString)
       if(injectedStringPatternMatcher.find() && value.toString.contains(taskConfig.getString("detectTypeInstancesOf"))) {
         val nextMinuteBin = String.format("%02d", value.toString.substring(3, 5).toInt + 1)
-        val hourBin = value.toString.substring(0, 3)
-        if(nextMinuteBin == "60" && hourBin == "24") {
-          word.set(value.toString.substring(0, 5) + "-" + "00:00")
+        val hourBin = value.toString.substring(0, 2)
+        if(nextMinuteBin == "60" && hourBin == "23") {
+          word.set("23:59-00:00")
         }
         else if(nextMinuteBin == "60") {
           word.set(value.toString.substring(0, 5) + "-" + String.format("%02d", value.toString.substring(0, 2).toInt + 1) + ":00")
