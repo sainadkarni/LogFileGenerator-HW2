@@ -3,7 +3,7 @@
 ## Name: Sai Nadkarni
 ## UIN: 672756678
 ## NetID: snadka2
-### Instructions and documentation:
+## Instructions and documentation:
 
 ## Project set up
 + Clone the project or download the repo in a zip format
