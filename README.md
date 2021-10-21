@@ -29,6 +29,7 @@ sbt clean compile assembly
 ### Explanation video:
 
 Google Drive- https://drive.google.com/file/d/1R5ZtMwe08oJCvnkmx12b8ey7N8dptQY-/view?usp=sharing
+YouTube- https://youtu.be/3HQkevVeOUk
 
 ### The goal of this homework is for students to gain experience with solving a distributed computational problem using cloud computing technologies. The main textbook group (option 1) will design and implement an instance of the map/reduce computational model whereas the alternative textbook group (option 2) will use the CORBA model. You can check your textbook option in the corresponding column of the gradebook on the Blackboard.
 ### Grade: 9%
