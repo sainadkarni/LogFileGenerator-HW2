@@ -37,6 +37,7 @@ object MaxCharacters {
       val injectedStringPatternMatcher = Pattern.compile(config.getString("randomLogGenerator.Pattern")).matcher(value.toString)
       val keywordPatternMatcher = Pattern.compile(taskConfig.getString("detectTypeInstancesOf")).matcher(value.toString)
       if(injectedStringPatternMatcher.find() && keywordPatternMatcher.find()) {
+        logger.info(s"Match found for one of- ${taskConfig.getString("detectTypeInstancesOf")}")
         word.set(keywordPatternMatcher.group())
         context.write(word, new IntWritable(injectedStringPatternMatcher.group().length))
       }

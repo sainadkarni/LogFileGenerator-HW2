@@ -36,6 +36,7 @@ object WordCount {
 
       val keywordPatternMatcher = Pattern.compile(taskConfig.getString("detectTypeInstancesOf")).matcher(value.toString)
       if(keywordPatternMatcher.find()) {
+        logger.info(s"Match found for one of- ${taskConfig.getString("detectTypeInstancesOf")}")
         word.set(keywordPatternMatcher.group())
         context.write(word, one)
       }
@@ -49,6 +50,7 @@ object WordCount {
       // where the key is a detected type instance.
 
       val sum = values.asScala.foldLeft(0)(_ + _.get)
+      logger.info(s"Sum calculated is ${sum}")
       context.write(key, new IntWritable(sum))
     }
   }
