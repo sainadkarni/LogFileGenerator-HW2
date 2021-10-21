@@ -6,7 +6,7 @@ target/
 build/
 out/
 
-*.log
+# *.log
 *.iml
 *.ipr
 *.iws
