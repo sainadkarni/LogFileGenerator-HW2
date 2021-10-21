@@ -18,8 +18,10 @@ class WordCount
 object WordCount {
 
   val config: Config = ConfigFactory.load("application.conf")
-//  val logger = CreateLogger(classOf[WordCount])
-//  logger.info(s"Test config loading, minimum string size is: ${config.getString("randomLogGenerator.MinString")}")
+  val taskConfig = config.getConfig("randomLogGenerator.taskConfigs.wordCount")
+
+  val logger = CreateLogger(classOf[WordCount])
+  logger.info(s"Test config loading, minimum string size is: ${config.getString("randomLogGenerator.MinString")}")
 
 
   class TokenizerMapper extends Mapper[Object, Text, Text, IntWritable] {
@@ -28,13 +30,11 @@ object WordCount {
     val word = new Text()
 
     override def map(key: Object, value: Text, context: Mapper[Object, Text, Text, IntWritable]#Context): Unit = {
-      val itr = new StringTokenizer(value.toString)
-//      val current = value.toStringSS
-//      current.split("\\$ - ")
-//      val current = value.toString.split("\\$ - ")(1)
-//      val injectedStringPatternMatcher = Pattern.compile(config.getString("randomLogGenerator.Pattern")).matcher(value.toString)
-      val keywordPatternMatcher = Pattern.compile("(DEBUG)|(INFO)|(WARN)|(ERROR)").matcher(value.toString)
-//      if(injectedStringPatternMatcher.find() && keywordPatternMatcher.find()) {
+
+      // Load the regex to detect whatever type instance we need to find from config and create a matcher for it. This matcher is applied to the log message
+      // read at runtime and isolates matches. The group() method returns the matched substring for the desired type instance.
+
+      val keywordPatternMatcher = Pattern.compile(taskConfig.getString("detectTypeInstancesOf")).matcher(value.toString)
       if(keywordPatternMatcher.find()) {
         word.set(keywordPatternMatcher.group())
         context.write(word, one)
@@ -44,25 +44,35 @@ object WordCount {
 
   class IntSumReader extends Reducer[Text,IntWritable,Text,IntWritable] {
     override def reduce(key: Text, values: Iterable[IntWritable], context: Reducer[Text, IntWritable, Text, IntWritable]#Context): Unit = {
+
+      // The reducer implements a simple running count by using the foldLeft method on the values iterable to count number of instances for the key,
+      // where the key is a detected type instance.
+
       val sum = values.asScala.foldLeft(0)(_ + _.get)
       context.write(key, new IntWritable(sum))
     }
   }
 
 
-  def main(args: Array[String]): Unit = {
+  def run(args: Array[String]): Unit = {
     val configuration = new Configuration
-    val job = Job.getInstance(configuration,"word count")
+
+    // Creating a CSV
+    configuration.set("mapred.textoutputformat.separator", ",")
+
+    val job = Job.getInstance(configuration, taskConfig.getString("jobName"))
     job.setJarByClass(this.getClass)
     job.setMapperClass(classOf[TokenizerMapper])
     job.setCombinerClass(classOf[IntSumReader])
     job.setReducerClass(classOf[IntSumReader])
     job.setOutputKeyClass(classOf[Text])
-    job.setOutputKeyClass(classOf[Text]);
-    job.setOutputValueClass(classOf[IntWritable]);
+    job.setOutputValueClass(classOf[IntWritable])
+
+    // Specifying input and output for the program, this is received from the cli and the actual folder name is specified in the config
     FileInputFormat.addInputPath(job, new Path(args(0)))
-    FileOutputFormat.setOutputPath(job, new Path(args(1)))
-    System.exit(if(job.waitForCompletion(true))  0 else 1)
+    FileOutputFormat.setOutputPath(job, new Path(args(1) + taskConfig.getString("outputFileName")))
+
+    job.waitForCompletion(true)
   }
 
 }

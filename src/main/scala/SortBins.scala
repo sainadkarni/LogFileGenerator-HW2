@@ -20,8 +20,10 @@ class SortBins
 object SortBins {
 
   val config: Config = ConfigFactory.load("application.conf")
-  //  val logger = CreateLogger(classOf[WordCount])
-  //  logger.info(s"Test config loading, minimum string size is: ${config.getString("randomLogGenerator.MinString")}")
+  val taskConfig = config.getConfig("randomLogGenerator.taskConfigs.sortBins")
+
+  val logger = CreateLogger(classOf[SortBins])
+  logger.info(s"Test config loading, minimum string size is: ${config.getString("randomLogGenerator.MinString")}")
 
 
   class TokenizerMapper extends Mapper[Object, Text, Text, IntWritable] {
@@ -32,7 +34,7 @@ object SortBins {
     override def map(key: Object, value: Text, context: Mapper[Object, Text, Text, IntWritable]#Context): Unit = {
 
       val injectedStringPatternMatcher = Pattern.compile(config.getString("randomLogGenerator.Pattern")).matcher(value.toString)
-      if(injectedStringPatternMatcher.find() && value.toString.contains("ERROR")) {
+      if(injectedStringPatternMatcher.find() && value.toString.contains(taskConfig.getString("detectTypeInstancesOf"))) {
         val nextMinuteBin = String.format("%02d", value.toString.substring(3, 5).toInt + 1)
         val hourBin = value.toString.substring(0, 3)
         if(nextMinuteBin == "60" && hourBin == "24") {
@@ -50,19 +52,20 @@ object SortBins {
 
   class extraMapper extends Mapper[Object, Text, IntWritable, Text] {
 
-    val one = new IntWritable(1)
-    val word = new Text()
+    val oneExtra = new IntWritable(1)
+    val wordExtra = new Text()
 
     override def map(key: Object, value: Text, context: Mapper[Object, Text, IntWritable, Text]#Context): Unit = {
-      one.set(value.toString.substring(12).toInt)
-      context.write(one, new Text(value.toString.substring(0, 11)))
+      oneExtra.set(value.toString.substring(12).toInt)
+      wordExtra.set(value.toString.substring(0, 11))
+      context.write(oneExtra, wordExtra)
     }
   }
 
   class IntComparator extends WritableComparator {
     override def compare(b1: Array[Byte], s1: Int, l1: Int, b2: Array[Byte], s2: Int, l2: Int): Int = {
       val v1: Int = ByteBuffer.wrap(b1, s1, l1).getInt()
-      val v2 = ByteBuffer.wrap(b2, s2, l2).getInt()
+      val v2: Int = ByteBuffer.wrap(b2, s2, l2).getInt()
 
       v1.compareTo(v2) * (-1)
     }
@@ -80,16 +83,13 @@ object SortBins {
 
     override def reduce(key: IntWritable, values: lang.Iterable[Text], context: Reducer[IntWritable, Text, IntWritable, Text]#Context): Unit = super.reduce(key, values, context)
 
-//    override def reduce(key: IntWritable, values: Iterable[Text], context: Reducer[IntWritable,Text,IntWritable,Text]#Context): Unit = {
-//      context.write(key, values.)
-//    }
   }
 
 
 
-  def main(args: Array[String]): Unit = {
+  def run(args: Array[String]): Unit = {
     val configuration = new Configuration
-    val job = Job.getInstance(configuration,"Error messages binned per minute")
+    val job = Job.getInstance(configuration, taskConfig.getString("jobName"))
     job.setJarByClass(this.getClass)
     job.setMapperClass(classOf[TokenizerMapper])
     job.setCombinerClass(classOf[IntSumReader])
@@ -98,12 +98,15 @@ object SortBins {
 //    job.setOutputKeyClass(classOf[Text])
     job.setOutputValueClass(classOf[IntWritable])
 //    job.setSortComparatorClass(classOf[LongWritable.DecreasingComparator])
-    FileInputFormat.addInputPath(job, new Path(args(0) + "Errors.log"))
-    FileOutputFormat.setOutputPath(job, new Path(args(1)))
+    FileInputFormat.addInputPath(job, new Path(args(0)))
+    FileOutputFormat.setOutputPath(job, new Path(args(1) + "intermediaryTask2"))
     job.waitForCompletion(true)
 
     val configuration2 = new Configuration
-    val job2 = Job.getInstance(configuration,"Error messages binned per minute")
+    configuration2.set("mapred.textoutputformat.separator", ",")
+//    configuration2.red
+    val job2 = Job.getInstance(configuration2, taskConfig.getString("jobName"))
+    job2.setNumReduceTasks(1)
     job2.setJarByClass(this.getClass)
     job2.setMapperClass(classOf[extraMapper])
 //    job2.setCombinerClass(classOf[extraReducer])
@@ -113,9 +116,9 @@ object SortBins {
     job2.setOutputKeyClass(classOf[IntWritable])
     job2.setOutputValueClass(classOf[Text])
     job2.setSortComparatorClass(classOf[IntComparator])
-    FileInputFormat.addInputPath(job2, new Path(args(1)))
-    FileOutputFormat.setOutputPath(job2, new Path("output2"))
-    System.exit(if(job2.waitForCompletion(true))  0 else 1)
+    FileInputFormat.addInputPath(job2, new Path(args(1) + "intermediaryTask2"))
+    FileOutputFormat.setOutputPath(job2, new Path(args(1) + taskConfig.getString("outputFileName")))
+    job2.waitForCompletion(true)
   }
 
 }

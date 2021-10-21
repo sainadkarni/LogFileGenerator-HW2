@@ -9,10 +9,10 @@ object RunJobs:
 
   def main(args: Array[String]): Unit = {
     logger.info("Starting Map/Reduce jobs")
-//    WordCount.main(args)
-//    MaxCharacters.main(args)
-//    SortBins.main(args)
-    Aggregations.main(args)
+    WordCount.run(args)
+    MaxCharacters.run(args)
+    SortBins.run(args)
+    Aggregations.run(args)
     logger.info("Finished all Map/Reduce jobs")
 
   }
