@@ -5,6 +5,8 @@
 ## NetID: snadka2
 ## Instructions and documentation:
 
+### Detiled description in docs folder
+
 ## Project set up
 + Clone the project or download the repo in a zip format
 + Open a terminal at the root level of the repository
