@@ -1,4 +1,35 @@
 # Homework 2
+
+## Name: Sai Nadkarni
+## UIN: 672756678
+## NetID: snadka2
+### Instructions and documentation:
+
+## Project set up
++ Clone the project or download the repo in a zip format
++ Open a terminal at the root level of the repository
++ To run the test cases written for the simulations,
+
+```
+sbt clean compile test
+```
+
++ To run the log generator
+
+```
+sbt clean compile run
+```
++ To run the M/R jobs
+
+```
+sbt clean compile assembly
+(in appropriate hadoop fs) hadoop fs jar-file.jar input/ output/
+```
+
+### Explanation video:
+
+Google Drive- https://drive.google.com/file/d/1R5ZtMwe08oJCvnkmx12b8ey7N8dptQY-/view?usp=sharing
+
 ### The goal of this homework is for students to gain experience with solving a distributed computational problem using cloud computing technologies. The main textbook group (option 1) will design and implement an instance of the map/reduce computational model whereas the alternative textbook group (option 2) will use the CORBA model. You can check your textbook option in the corresponding column of the gradebook on the Blackboard.
 ### Grade: 9%
 #### This Git repo contains the description of the second homework that uses this implementation of a log file generator in Scala. Students should clone this repo using the command ```git clone git@github.com:0x1DOCD00D/LogFileGenerator.git```. Students should invest some time to learn the implementation details of the log generator, specifically, how no ```var``` is used and how mutation is avoided and recursion is used, however, it is not required for completing this homework.
