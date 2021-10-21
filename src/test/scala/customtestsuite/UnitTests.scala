@@ -1,12 +1,14 @@
 package scala.customtestsuite
 
 import com.typesafe.config.{Config, ConfigFactory}
+import org.apache.hadoop.io.Text
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers.*
 
 import java.util
 import java.util.List
+import java.util.regex.Pattern
 
 class UnitTests extends AnyFunSuite {
 
@@ -17,82 +19,86 @@ class UnitTests extends AnyFunSuite {
     assert(count > 0 || duration > 0)
   }
 
-  test("Unit test to check successful loading of configuration") {
+  test("Unit test to check pattern matching") {
     val config: Config = ConfigFactory.load("application.conf")
-    val duration = config.getInt("randomLogGenerator.DurationMinutes")
-    val count = config.getInt("randomLogGenerator.MaxCount")
-    assert(count > 0 || duration > 0)
+    val testingString = "20:54:56.986 [scala-execution-context-global-181] ERROR HelperUtils.Parameters$ - NT1#6aT6sY6uB9wG7vbe0F8wL9m\"Irsj,"
+    val keywordPatternMatcher = Pattern.compile(config.getString("randomLogGenerator.taskConfigs.wordCount.detectTypeInstancesOf")).matcher(testingString)
+    assert(keywordPatternMatcher.find())
   }
 
-//  test("Unit test to see if datacenter is created") {
-//    val configFileName: String = "SchedulerComparisons.conf"
-//    val config: Config = ConfigFactory.load(configFileName)
-//    val hostConfig = new hostUtil(configFileName)
-//    val datacenterConfig = new DatacenterUtil(configFileName, hostConfig, new vmUtil(configFileName), new cloudletUtil(configFileName))
-//    val datacenter = datacenterConfig.createDatacenter(new CloudSim(), new VmAllocationPolicySimple(), new VmSchedulerSpaceShared())
-//    datacenter shouldBe a [Datacenter]
-//  }
-//
-//  test("Unit test to see if host(s) are created") {
-//    val configFileName: String = "SchedulerComparisons.conf"
-//    val config: Config = ConfigFactory.load(configFileName)
-//    val hostConfig = new hostUtil(configFileName)
-//    val datacenterConfig = new DatacenterUtil(configFileName, hostConfig, new vmUtil(configFileName), new cloudletUtil(configFileName))
-//    val hostList = datacenterConfig.makeAllHosts(new VmSchedulerSpaceShared())
-//    hostList shouldBe a [List[Host]]
-//    hostList.get(0) shouldBe a [Host]
-//  }
-//
-//  test("Unit test to see if VM scheduler is set correctly") {
-//    val configFileName: String = "SchedulerComparisons.conf"
-//    val config: Config = ConfigFactory.load(configFileName)
-//    val hostConfig = new hostUtil(configFileName)
-//    val datacenterConfig = new DatacenterUtil(configFileName, hostConfig, new vmUtil(configFileName), new cloudletUtil(configFileName))
-//    val hostList = datacenterConfig.makeAllHosts(new VmSchedulerSpaceShared())
-//    val hostScheduler = hostList.get(0).getVmScheduler()
-//    hostScheduler shouldBe a [VmSchedulerSpaceShared]
-//  }
-//
-//  test("Unit test to see if all VM's are allocated") {
-//    val configFileName: String = "SchedulerComparisons.conf"
-//    val config: Config = ConfigFactory.load(configFileName)
-//    val hostConfig = new hostUtil(configFileName)
-//    val vmConfig = new vmUtil(configFileName)
-//    val cloudletConfig = new cloudletUtil(configFileName)
-//    val datacenterConfig = new DatacenterUtil(configFileName, hostConfig, vmConfig, cloudletConfig)
-//    val datacenter = datacenterConfig.createDatacenter(new CloudSim(), new VmAllocationPolicySimple(), new VmSchedulerSpaceShared())
-//    val cloudsim = new CloudSim()
-//    datacenterConfig.createDatacenter(cloudsim, new VmAllocationPolicySimple, new VmSchedulerSpaceShared)
-//    val broker = new DatacenterBrokerSimple(cloudsim)
-//
-//    val vm: util.List[Vm] = vmConfig.makeVMs(new CloudletSchedulerSpaceShared(), config.getInt("entryPoint.datacenter.vmAmount"))
-//    broker.submitVmList(vm)
-//    val cloudlets: util.List[Cloudlet] = cloudletConfig.makeCloudlets(new UtilizationModelFull(), config.getInt("entryPoint.datacenter.cloudletsAmount"))
-//    broker.submitCloudletList(cloudlets)
-//    cloudsim.start()
-//
-//    broker.getVmCreatedList().size() shouldEqual vm.size()
-//  }
-//
-//  test("Unit test to see if all cloudlets are executed") {
-//    val configFileName: String = "SchedulerComparisons.conf"
-//    val config: Config = ConfigFactory.load(configFileName)
-//    val hostConfig = new hostUtil(configFileName)
-//    val vmConfig = new vmUtil(configFileName)
-//    val cloudletConfig = new cloudletUtil(configFileName)
-//    val datacenterConfig = new DatacenterUtil(configFileName, hostConfig, vmConfig, cloudletConfig)
-//    val datacenter = datacenterConfig.createDatacenter(new CloudSim(), new VmAllocationPolicySimple(), new VmSchedulerSpaceShared())
-//    val cloudsim = new CloudSim()
-//    datacenterConfig.createDatacenter(cloudsim, new VmAllocationPolicySimple, new VmSchedulerSpaceShared)
-//    val broker = new DatacenterBrokerSimple(cloudsim)
-//
-//    val vm: Vm = vmConfig.makeVM(new CloudletSchedulerSpaceShared())
-//    broker.submitVm(vm)
-//    val cloudlets: util.List[Cloudlet] = cloudletConfig.makeCloudlets(new UtilizationModelFull(), config.getInt("entryPoint.datacenter.cloudletsAmount"))
-//    broker.submitCloudletList(cloudlets)
-//    cloudsim.start()
-//
-//    val completedCloudlets: util.List[Cloudlet] = broker.getCloudletFinishedList
-//    cloudlets.size() shouldEqual completedCloudlets.size()
+  test("Unit test to check pattern matching negative case") {
+    val config: Config = ConfigFactory.load("application.conf")
+    val testingString = "20:54:56.986 [scala-execution-context-global-181] RANDOM HelperUtils.Parameters$ - NT1#6aT6sY6uB9wG7vbe0F8wL9m\"Irsj,"
+    val keywordPatternMatcher = Pattern.compile(config.getString("randomLogGenerator.taskConfigs.wordCount.detectTypeInstancesOf")).matcher(testingString)
+    assert(!keywordPatternMatcher.find())
+  }
+
+  test("Unit test to check bin generation") {
+    val word = new Text()
+    val testingString = "20:54:56.986 [scala-execution-context-global-181] ERROR HelperUtils.Parameters$ - NT1#6aT6sY6uB9wG7vbe0F8wL9m\"Irsj,"
+    val nextMinuteBin = String.format("%02d", testingString.substring(3, 5).toInt + 1)
+    val hourBin = testingString.substring(0, 3)
+    if(nextMinuteBin == "60" && hourBin == "24") {
+      word.set(testingString.substring(0, 5) + "-" + "00:00")
+    }
+    else if(nextMinuteBin == "60") {
+      word.set(testingString.substring(0, 5) + "-" + String.format("%02d", testingString.substring(0, 2).toInt + 1) + ":00")
+    }
+    else
+      word.set(testingString.substring(0, 5) + "-" + testingString.substring(0, 3) + String.format("%02d", testingString.substring(3, 5).toInt + 1))
+
+    assert(word.toString == "20:54-20:55")
+  }
+
+  test("Unit test to check bin generation edge case for minutes only") {
+    val word = new Text()
+    val testingString = "20:59:56.986 [scala-execution-context-global-181] ERROR HelperUtils.Parameters$ - NT1#6aT6sY6uB9wG7vbe0F8wL9m\"Irsj,"
+    val nextMinuteBin = String.format("%02d", testingString.substring(3, 5).toInt + 1)
+    val hourBin = testingString.substring(0, 3)
+    if(nextMinuteBin == "60" && hourBin == "24") {
+      word.set(testingString.substring(0, 5) + "-" + "00:00")
+    }
+    else if(nextMinuteBin == "60") {
+      word.set(testingString.substring(0, 5) + "-" + String.format("%02d", testingString.substring(0, 2).toInt + 1) + ":00")
+    }
+    else
+      word.set(testingString.substring(0, 5) + "-" + testingString.substring(0, 3) + String.format("%02d", testingString.substring(3, 5).toInt + 1))
+
+    assert(word.toString == "20:59-21:00")
+  }
+
+  test("Unit test to check bin generation edge case for minutes and hours") {
+    val word = new Text()
+    val testingString = "23:59:56.986 [scala-execution-context-global-181] ERROR HelperUtils.Parameters$ - NT1#6aT6sY6uB9wG7vbe0F8wL9m\"Irsj,"
+    val nextMinuteBin = String.format("%02d", testingString.substring(3, 5).toInt + 1)
+    val hourBin = testingString.substring(0, 2)
+    if(nextMinuteBin == "60" && hourBin == "23") {
+      word.set("23:59-00:00")
+    }
+    else if(nextMinuteBin == "60") {
+      word.set(testingString.substring(0, 5) + "-" + String.format("%02d", testingString.substring(0, 2).toInt + 1) + ":00")
+    }
+    else
+      word.set(testingString.substring(0, 5) + "-" + testingString.substring(0, 3) + String.format("%02d", testingString.substring(3, 5).toInt + 1))
+
+    assert(word.toString == "23:59-00:00")
+  }
+
+  test("Unit test to check amount of digits in time interval to be maintained at 2") {
+    val word = new Text()
+    val testingString = "01:04:56.986 [scala-execution-context-global-181] ERROR HelperUtils.Parameters$ - NT1#6aT6sY6uB9wG7vbe0F8wL9m\"Irsj,"
+    val nextMinuteBin = String.format("%02d", testingString.substring(3, 5).toInt + 1)
+    val hourBin = testingString.substring(0, 2)
+    if(nextMinuteBin == "60" && hourBin == "23") {
+      word.set("23:59-00:00")
+    }
+    else if(nextMinuteBin == "60") {
+      word.set(testingString.substring(0, 5) + "-" + String.format("%02d", testingString.substring(0, 2).toInt + 1) + ":00")
+    }
+    else
+      word.set(testingString.substring(0, 5) + "-" + testingString.substring(0, 3) + String.format("%02d", testingString.substring(3, 5).toInt + 1))
+
+    assert(word.toString == "01:04-01:05")
+  }
 
 }
